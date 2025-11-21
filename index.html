@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>अलग को खोजो! - Odd One Out Game</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide Icons as inline SVG components
+        const Timer = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <line x1="10" x2="14" y1="2" y2="2"/>
+                <line x1="12" x2="15" y1="14" y2="11"/>
+                <circle cx="12" cy="14" r="8"/>
+            </svg>
+        );
+
+        const CheckCircle = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        );
+
+        const XCircle = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m15 9-6 6"/>
+                <path d="m9 9 6 6"/>
+            </svg>
+        );
+
+        const Trophy = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                <path d="M4 22h16"/>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+        );
+
+        const questions = [
+          {
+            options: [
+              { name: "पेंगुइन", isOdd: false },
+              { name: "शुतुरमुर्ग", isOdd: false },
+              { name: "एमू", isOdd: false },
+              { name: "चील", isOdd: true }
+            ],
+            explanation: "चील उड़ सकती है, जबकि पेंगुइन, शुतुरमुर्ग और एमू उड़ान रहित पक्षी हैं।"
+          },
+          {
+            options: [
+              { name: "अरब सागर", isOdd: false },
+              { name: "हिंद महासागर", isOdd: true },
+              { name: "बंगाल की खाड़ी", isOdd: false },
+              { name: "अंडमान सागर", isOdd: false }
+            ],
+            explanation: "हिंद महासागर एक महासागर है, जबकि अरब सागर, बंगाल की खाड़ी और अंडमान सागर समुद्र हैं।"
+          },
+          {
+            options: [
+              { name: "बुध", isOdd: false },
+              { name: "शुक्र", isOdd: false },
+              { name: "पृथ्वी", isOdd: false },
+              { name: "बृहस्पति", isOdd: true }
+            ],
+            explanation: "बृहस्पति बाहरी सौर मंडल का ग्रह है, जबकि बुध, शुक्र और पृथ्वी आंतरिक सौर मंडल के ग्रह हैं।"
+          },
+          {
+            options: [
+              { name: "योगी आदित्यनाथ", isOdd: false },
+              { name: "ममता बनर्जी", isOdd: false },
+              { name: "एम के स्टालिन", isOdd: false },
+              { name: "राहुल गांधी", isOdd: true }
+            ],
+            explanation: "राहुल गांधी कभी मुख्यमंत्री नहीं रहे, जबकि योगी आदित्यनाथ (UP), ममता बनर्जी (पश्चिम बंगाल) और एम के स्टालिन (तमिलनाडु) मुख्यमंत्री रहे हैं।"
+          },
+          {
+            options: [
+              { name: "भारत", isOdd: false },
+              { name: "ऑस्ट्रेलिया", isOdd: false },
+              { name: "इंग्लैंड", isOdd: false },
+              { name: "दक्षिण अफ्रीका", isOdd: true }
+            ],
+            explanation: "दक्षिण अफ्रीका ने कभी ODI विश्व कप नहीं जीता, जबकि भारत, ऑस्ट्रेलिया और इंग्लैंड ने जीता है।"
+          },
+          {
+            options: [
+              { name: "असम", isOdd: false },
+              { name: "मेघालय", isOdd: false },
+              { name: "नागालैंड", isOdd: false },
+              { name: "सिक्किम", isOdd: true }
+            ],
+            explanation: "सिक्किम उत्तर पूर्व के सात बहनों में शामिल नहीं है, जबकि असम, मेघालय और नागालैंड शामिल हैं।"
+          },
+          {
+            options: [
+              { name: "नंदा देवी", isOdd: false },
+              { name: "कामेत", isOdd: false },
+              { name: "कंचनजंगा", isOdd: false },
+              { name: "माउंट एवरेस्ट", isOdd: true }
+            ],
+            explanation: "माउंट एवरेस्ट नेपाल और तिब्बत की सीमा पर है, जबकि नंदा देवी, कामेत और कंचनजंगा भारत में हैं।"
+          },
+          {
+            options: [
+              { name: "फ्लिपकार्ट", isOdd: false },
+              { name: "ओला", isOdd: false },
+              { name: "पेटीएम", isOdd: false },
+              { name: "टाटा मोटर्स", isOdd: true }
+            ],
+            explanation: "टाटा मोटर्स यूनिकॉर्न स्टार्टअप नहीं है बल्कि एक स्थापित कंपनी है, जबकि फ्लिपकार्ट, ओला और पेटीएम यूनिकॉर्न स्टार्टअप हैं।"
+          },
+          {
+            options: [
+              { name: "लखनऊ", isOdd: false },
+              { name: "कानपुर", isOdd: false },
+              { name: "वाराणसी", isOdd: false },
+              { name: "पटना", isOdd: true }
+            ],
+            explanation: "पटना बिहार का जिला है, जबकि लखनऊ, कानपुर और वाराणसी उत्तर प्रदेश के जिले हैं।"
+          },
+          {
+            options: [
+              { name: "पंजाब", isOdd: false },
+              { name: "राजस्थान", isOdd: false },
+              { name: "गुजरात", isOdd: false },
+              { name: "हरियाणा", isOdd: true }
+            ],
+            explanation: "हरियाणा पाकिस्तान से सीमा साझा नहीं करता, जबकि पंजाब, राजस्थान और गुजरात पाकिस्तान से सीमा साझा करते हैं।"
+          }
+        ];
+
+        function OddOneOutGame() {
+          const [currentQuestion, setCurrentQuestion] = useState(0);
+          const [score, setScore] = useState(0);
+          const [timeLeft, setTimeLeft] = useState(10);
+          const [selectedOption, setSelectedOption] = useState(null);
+          const [showExplanation, setShowExplanation] = useState(false);
+          const [gameOver, setGameOver] = useState(false);
+          const [isTimerActive, setIsTimerActive] = useState(true);
+          const [shuffledOptions, setShuffledOptions] = useState([]);
+
+          useEffect(() => {
+            if (currentQuestion < questions.length) {
+              const shuffled = [...questions[currentQuestion].options].sort(() => Math.random() - 0.5);
+              setShuffledOptions(shuffled);
+            }
+          }, [currentQuestion]);
+
+          useEffect(() => {
+            if (!isTimerActive || showExplanation || gameOver) return;
+
+            if (timeLeft > 0) {
+              const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+              return () => clearTimeout(timer);
+            } else {
+              setShowExplanation(true);
+              setIsTimerActive(false);
+            }
+          }, [timeLeft, isTimerActive, showExplanation, gameOver]);
+
+          const handleOptionClick = (option) => {
+            if (showExplanation) return;
+            
+            setSelectedOption(option);
+            setIsTimerActive(false);
+            setShowExplanation(true);
+            
+            if (option.isOdd) {
+              setScore(score + 1);
+            }
+          };
+
+          const handleNext = () => {
+            if (currentQuestion < questions.length - 1) {
+              setCurrentQuestion(currentQuestion + 1);
+              setTimeLeft(10);
+              setSelectedOption(null);
+              setShowExplanation(false);
+              setIsTimerActive(true);
+            } else {
+              setGameOver(true);
+            }
+          };
+
+          const handleRestart = () => {
+            setCurrentQuestion(0);
+            setScore(0);
+            setTimeLeft(10);
+            setSelectedOption(null);
+            setShowExplanation(false);
+            setGameOver(false);
+            setIsTimerActive(true);
+          };
+
+          if (gameOver) {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+                  <Trophy className="w-24 h-24 mx-auto text-yellow-500 mb-4" />
+                  <h1 className="text-4xl font-bold text-gray-800 mb-4">खेल समाप्त!</h1>
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 mb-6">
+                    <p className="text-6xl font-bold text-purple-600 mb-2">{score}/10</p>
+                    <p className="text-xl text-gray-700">अंतिम स्कोर</p>
+                  </div>
+                  <p className="text-lg text-gray-600 mb-6">
+                    {score >= 8 ? "🌟 शानदार! आप माहिर हैं!" : 
+                     score >= 6 ? "👏 बहुत बढ़िया! अच्छा किया!" : 
+                     score >= 4 ? "👍 अच्छा प्रयास! अभ्यास करते रहो!" : 
+                     "💪 हार मत मानो! फिर कोशिश करो!"}
+                  </p>
+                  <button
+                    onClick={handleRestart}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-4 rounded-2xl hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105"
+                  >
+                    फिर से खेलें
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-md w-full">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="bg-purple-100 rounded-full px-4 py-2">
+                    <p className="text-sm font-semibold text-purple-600">
+                      प्रश्न {currentQuestion + 1}/10
+                    </p>
+                  </div>
+                  <div className="bg-pink-100 rounded-full px-4 py-2">
+                    <p className="text-sm font-semibold text-pink-600">
+                      स्कोर: {score}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex items-center justify-center mb-2">
+                    <Timer className={`w-6 h-6 mr-2 ${timeLeft <= 3 ? 'text-red-500' : 'text-blue-500'}`} />
+                    <span className={`text-3xl font-bold ${timeLeft <= 3 ? 'text-red-500' : 'text-blue-500'}`}>
+                      {timeLeft}s
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-1000 ${timeLeft <= 3 ? 'bg-red-500' : 'bg-blue-500'}`}
+                      style={{ width: `${(timeLeft / 10) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                  अलग को खोजो!
+                </h2>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {shuffledOptions.map((option, index) => {
+                    const isSelected = selectedOption === option;
+                    const showResult = showExplanation && isSelected;
+                    const isCorrect = showResult && option.isOdd;
+                    const isWrong = showResult && !option.isOdd;
+                    const showCorrectAnswer = showExplanation && option.isOdd && !isSelected;
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleOptionClick(option)}
+                        disabled={showExplanation}
+                        className={`
+                          relative py-8 px-4 rounded-2xl border-4 transition-all transform hover:scale-105
+                          ${!showExplanation ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-300 hover:border-purple-400 active:scale-95' : ''}
+                          ${isCorrect ? 'bg-green-100 border-green-500' : ''}
+                          ${isWrong ? 'bg-red-100 border-red-500' : ''}
+                          ${showCorrectAnswer ? 'bg-green-50 border-green-400' : ''}
+                          ${showExplanation && !isSelected && !option.isOdd ? 'opacity-60' : ''}
+                        `}
+                      >
+                        <p className="text-2xl font-bold text-gray-800">{option.name}</p>
+                        
+                        {isCorrect && (
+                          <CheckCircle className="absolute top-2 right-2 w-8 h-8 text-green-500" />
+                        )}
+                        {isWrong && (
+                          <XCircle className="absolute top-2 right-2 w-8 h-8 text-red-500" />
+                        )}
+                        {showCorrectAnswer && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            जवाब
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {showExplanation && (
+                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-2xl p-4 mb-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">
+                      {selectedOption?.isOdd ? "✅ सही!" : "❌ गलत!"}
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed">
+                      {questions[currentQuestion].explanation}
+                    </p>
+                  </div>
+                )}
+
+                {showExplanation && (
+                  <button
+                    onClick={handleNext}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white text-xl font-bold py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all transform hover:scale-105"
+                  >
+                    {currentQuestion < questions.length - 1 ? "अगला प्रश्न →" : "परिणाम देखें →"}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.render(<OddOneOutGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>
